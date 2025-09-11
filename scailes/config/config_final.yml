@@ -1,0 +1,91 @@
+misc:
+  random_seed: 42
+  matmul_precision: medium
+  fp_precision: &fp_precision 32
+
+data_module:
+  _target_: scailes.data.datamodule.FishScaleDataModule
+  data_module_config:
+    epoch_size: 10332 # twice the number of Wild classifications in train set
+
+    data_loader:
+      batch_size: 64
+      num_workers: 96
+      prefetch_factor: 4
+      persistent_workers: True
+      pin_memory: True
+
+    transforms:
+      training:
+        _target_: scailes.utils.autoaugment_image_transform
+      validation:
+        _target_: scailes.utils.minimal_transform_resnext
+
+    paths:
+      train_path: scailes/new_data/train.csv
+      validation_path: new_data/val.csv
+      images_path: scailes/new_data/images/
+
+
+trainer:
+    _target_: lightning.pytorch.Trainer
+    max_epochs: 150
+    check_val_every_n_epoch: 10
+    devices: 4
+    deterministic: True
+    accelerator: "auto"
+    accumulate_grad_batches: 1
+    gradient_clip_val: 1
+    gradient_clip_algorithm: norm
+    enable_checkpointing: True
+    enable_model_summary: True
+    num_sanity_val_steps: 2
+    precision: *fp_precision
+    log_every_n_steps: 15
+    callbacks:
+        - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+          monitor: 'val/f1'
+          save_top_k: 5
+          mode: max
+          auto_insert_metric_name: True
+          save_weights_only: False
+        - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+          logging_interval: step
+
+train:
+  optimizer:
+    _target_: torch.optim.AdamW
+    lr: 1e-3
+    weight_decay: 0.001
+  lr_scheduler:
+    _target_: torch.optim.lr_scheduler.OneCycleLR
+    max_lr: 6e-4
+    div_factor: 1.25
+    final_div_factor: 40
+
+  loss_function:
+     _target_: scailes.loss.FocalLoss
+     alpha: 0.25
+     gamma: 2.0
+     reduction: mean
+
+  #  _target_: torch.nn.CrossEntropyLoss
+  #  weight:
+  #    _target_: torch.Tensor
+  #    data: [2., 1.2] #[1.048149, 21.769010]
+
+model:
+  _target_: torchvision.models.resnext50_32x4d
+  weights: IMAGENET1K_V2
+
+
+logger:
+  _target_: lightning.pytorch.loggers.TensorBoardLogger
+  name: ""
+  save_dir: logs/
+  default_hp_metric: True
+
+dummy_run:
+  dummy_run: False
+  limit_train_batches: 10
+  limit_val_batches: 1
