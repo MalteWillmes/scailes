@@ -23,9 +23,9 @@ exported ONNX model, not the training dependencies (no PyTorch).
 ```bash
 uv run --no-project --with-requirements gui/requirements.txt python -m streamlit run gui/app.py
 ```
-3. Choose a folder of images (`.tif`, `.jpg`, `.png`, `.bmp`) and click **Classify**.
+3. Choose a folder of images (`.tif`, `.jpg`, `.png`, `.bmp`; subfolders are included) and click **Classify**.
 
-The app shows one row per image with `P(farmed)` and a label. A scale is labelled *Farmed* when
+The app shows one row per image with its folder, `P(farmed)` and a label. A scale is labelled *Farmed* when
 `P(farmed)` is at or above the threshold set in the sidebar (default 0.5); changing it relabels
 the table without re-running the model. The table can be downloaded as CSV.
 

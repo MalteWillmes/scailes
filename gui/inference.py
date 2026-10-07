@@ -20,8 +20,11 @@ STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
 
 def list_images(folder: Path) -> list[Path]:
+    """All images in the folder and its subfolders."""
     return sorted(
-        p for p in Path(folder).iterdir() if p.suffix.lower() in IMAGE_SUFFIXES
+        p
+        for p in Path(folder).rglob("*")
+        if p.is_file() and p.suffix.lower() in IMAGE_SUFFIXES
     )
 
 
@@ -61,11 +64,23 @@ def softmax(logits: np.ndarray) -> np.ndarray:
 def classify(
     session: ort.InferenceSession,
     paths: list[Path],
+    root: Path,
     batch_size: int = 8,
     progress=None,
 ) -> pd.DataFrame:
-    """One row per image: file, p_farmed, and error for unreadable files."""
+    """One row per image: folder (relative to root), file, p_farmed, and error for
+    unreadable files."""
     rows: list[dict] = []
+
+    def row(p: Path, p_farmed: float, error: str) -> dict:
+        rel = p.parent.relative_to(root).as_posix()
+        return {
+            "folder": "" if rel == "." else rel,
+            "file": p.name,
+            "p_farmed": p_farmed,
+            "error": error,
+        }
+
     for start in range(0, len(paths), batch_size):
         chunk = paths[start : start + batch_size]
         arrays, ok = [], []
@@ -74,15 +89,15 @@ def classify(
                 arrays.append(preprocess(p))
                 ok.append(p)
             except Exception as exc:  # unreadable or corrupt image
-                rows.append({"file": p.name, "p_farmed": np.nan, "error": str(exc)})
+                rows.append(row(p, np.nan, str(exc)))
         if arrays:
             logits = session.run(None, {"input": np.stack(arrays)})[0]
             for p, prob in zip(ok, softmax(logits)[:, 1]):
-                rows.append({"file": p.name, "p_farmed": float(prob), "error": ""})
+                rows.append(row(p, float(prob), ""))
         if progress:
             progress(min(start + batch_size, len(paths)) / len(paths))
-    df = pd.DataFrame(rows, columns=["file", "p_farmed", "error"])
-    return df.sort_values("file").reset_index(drop=True)
+    df = pd.DataFrame(rows, columns=["folder", "file", "p_farmed", "error"])
+    return df.sort_values(["folder", "file"]).reset_index(drop=True)
 
 
 def label(p_farmed: pd.Series, threshold: float) -> pd.Series:

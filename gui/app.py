@@ -65,7 +65,7 @@ images: list[Path] = []
 if folder:
     if Path(folder).is_dir():
         images = inference.list_images(Path(folder))
-        st.caption(f"{len(images)} image(s) found")
+        st.caption(f"{len(images)} image(s) found (including subfolders)")
     else:
         st.warning("That folder does not exist.")
 
@@ -74,7 +74,10 @@ if st.button("Classify", type="primary", disabled=not images):
     st.session_state["result"] = {
         "folder": folder,
         "df": inference.classify(
-            get_session(model_path), images, progress=lambda f: bar.progress(f)
+            get_session(model_path),
+            images,
+            Path(folder),
+            progress=lambda f: bar.progress(f),
         ),
     }
     bar.empty()
@@ -95,7 +98,7 @@ if result:
     left, right = st.columns([3, 2])
     with left:
         event = st.dataframe(
-            df[["file", "label", "p_farmed", "error"]],
+            df[["folder", "file", "label", "p_farmed", "error"]],
             hide_index=True,
             use_container_width=True,
             on_select="rerun",
@@ -115,9 +118,12 @@ if result:
     with right:
         rows = event.selection.rows
         if rows:
-            name = df.iloc[rows[0]]["file"]
+            sel = df.iloc[rows[0]]
             st.image(
-                inference.load_fitted(Path(result["folder"]) / name), caption=name
+                inference.load_fitted(
+                    Path(result["folder"]) / sel["folder"] / sel["file"]
+                ),
+                caption=f'{sel["folder"]}/{sel["file"]}'.lstrip("/"),
             )
         else:
             st.caption("Select a row to see the image.")
