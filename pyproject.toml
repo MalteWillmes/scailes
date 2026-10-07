@@ -2,10 +2,22 @@
 name = "scailes"
 version = "0.1.0"
 description = "An image classifier for classifying farmed and wild Atlantic salmon fish scales"
-authors = ["Malte Willmes, Anders Aamodt, Børge Solli Andreassen, 
-Lina Victoria Tuddenham Haug, Enghild Steinkjer, Gunnel M. Østborg, 
-Gitte Løkeberg, Peder Fiske, Geir R. Brandt, Terje Mikalsen, Arne Siversten, 
-Magnus Moustache, June Larsen Ydsti, Bjørn Florø-Larsen"]
+authors = [
+    "Malte Willmes",
+    "Anders Aamodt",
+    "Børge Solli Andreassen",
+    "Lina Victoria Tuddenham Haug",
+    "Enghild Steinkjer",
+    "Gunnel M. Østborg",
+    "Gitte Løkeberg",
+    "Peder Fiske",
+    "Geir R. Brandt",
+    "Terje Mikalsen",
+    "Arne Siversten",
+    "Magnus Moustache",
+    "June Larsen Ydsti",
+    "Bjørn Florø-Larsen",
+]
 license = "MIT"
 
 [tool.poetry.dependencies]

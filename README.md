@@ -14,6 +14,24 @@ curl -sSL https://install.python-poetry.org | python -
 poetry install
 ```
 
+## Classify scales with the GUI
+A small web app classifies a folder of scale images as wild or farmed. It only needs the
+exported ONNX model, not the training dependencies (no PyTorch).
+
+1. Put `scale_classifier.onnx` in the repository root (or set its path in the app's sidebar).
+2. Start the app from the repository root:
+```bash
+uv run --no-project --with-requirements gui/requirements.txt python -m streamlit run gui/app.py
+```
+3. Choose a folder of images (`.tif`, `.jpg`, `.png`, `.bmp`) and click **Classify**.
+
+The app shows one row per image with `P(farmed)` and a label. A scale is labelled *Farmed* when
+`P(farmed)` is at or above the threshold set in the sidebar (default 0.5); changing it relabels
+the table without re-running the model. The table can be downloaded as CSV.
+
+Images are shrunk to fit within 720x480 px, then resized to 384x512 and normalized, as in the
+paper. The inference code is in `gui/inference.py`.
+
 ## Model training
 The model is trained using `train.py`.
 
