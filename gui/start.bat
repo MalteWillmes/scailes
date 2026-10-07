@@ -1,3 +1,3 @@
 @echo off
 cd /d "%~dp0.."
-uv run --no-project --with-requirements gui/requirements.txt streamlit run gui/app.py
+uv run --no-project --with-requirements gui/requirements.txt python -m streamlit run gui/app.py

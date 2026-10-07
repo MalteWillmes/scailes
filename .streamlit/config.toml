@@ -1,0 +1,9 @@
+# Streamlit settings for gui/app.py (read when started from the repository root)
+
+[browser]
+# don't send usage statistics to Streamlit
+gatherUsageStats = false
+
+[server]
+# only reachable from this computer: the app browses folders on the machine it runs on
+address = "localhost"
