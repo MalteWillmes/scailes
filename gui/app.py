@@ -15,7 +15,7 @@ import inference  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MODEL = ROOT / "scale_classifier.onnx"
 
-st.set_page_config(page_title="sc[ai]les", layout="wide")
+st.set_page_config(page_title="sc[ai]les", page_icon="🐟", layout="wide")
 st.title("sc[ai]les: wild or farmed salmon scales")
 
 
