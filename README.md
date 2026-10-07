@@ -1,5 +1,5 @@
 # sc[ai]les
-Model architecture and development for Willmes et al., in review: "Identifying escaped farmed salmon from fish scales using deep learning". This deep learning image classifier can distinguish farmed from wild Atlantic salmon using scale images. The model was trained on ~90,000 fish scales from hundreds of rivers across Norway.
+Model architecture and development for [Willmes et al., 2025](https://academic.oup.com/biomethods/article/doi/10.1093/biomethods/bpaf078/8341984): "Identifying escaped farmed salmon from fish scales using deep learning". This deep learning image classifier can distinguish farmed from wild Atlantic salmon using scale images. The model was trained on ~90,000 fish scales from hundreds of rivers across Norway.
 
 ## Installation
 Python version 3.11 was used for the development in this project.
