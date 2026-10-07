@@ -25,9 +25,11 @@ uv run --no-project --with-requirements gui/requirements.txt python -m streamlit
 ```
 3. Choose a folder of images (`.tif`, `.jpg`, `.png`, `.bmp`; subfolders are included) and click **Classify**.
 
-The app shows one row per image with its folder, `P(farmed)` and a label. A scale is labelled *Farmed* when
-`P(farmed)` is at or above the threshold set in the sidebar (default 0.5); changing it relabels
-the table without re-running the model. The table can be downloaded as CSV.
+The app shows one row per image with its folder, `P(wild)`, `P(farmed)` and a label. The model
+was trained with a sigmoid focal loss, so each output is an independent score and the two
+probabilities do not have to add up to 1. A scale is labelled *Farmed* when `P(farmed)` is at or
+above the threshold set in the sidebar (default 0.5); changing it relabels the table without
+re-running the model. The table can be downloaded as CSV.
 
 Images are shrunk to fit within 720x480 px, then resized to 384x512 and normalized, as in the
 paper. The inference code is in `gui/inference.py`.

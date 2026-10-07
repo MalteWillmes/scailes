@@ -56,9 +56,11 @@ def preprocess(path: Path) -> np.ndarray:
     return ((arr - MEAN) / STD).transpose(2, 0, 1)
 
 
-def softmax(logits: np.ndarray) -> np.ndarray:
-    e = np.exp(logits - logits.max(axis=1, keepdims=True))
-    return e / e.sum(axis=1, keepdims=True)
+def sigmoid(logits: np.ndarray) -> np.ndarray:
+    """Per-class probability. The model was trained with a sigmoid focal loss on
+    one-hot targets, so each output is an independent score: P(wild) and P(farmed)
+    do not have to add up to 1."""
+    return 1.0 / (1.0 + np.exp(-logits))
 
 
 def classify(
@@ -68,15 +70,16 @@ def classify(
     batch_size: int = 8,
     progress=None,
 ) -> pd.DataFrame:
-    """One row per image: folder (relative to root), file, p_farmed, and error for
-    unreadable files."""
+    """One row per image: folder (relative to root), file, p_wild, p_farmed, and
+    error for unreadable files."""
     rows: list[dict] = []
 
-    def row(p: Path, p_farmed: float, error: str) -> dict:
+    def row(p: Path, p_wild: float, p_farmed: float, error: str) -> dict:
         rel = p.parent.relative_to(root).as_posix()
         return {
             "folder": "" if rel == "." else rel,
             "file": p.name,
+            "p_wild": p_wild,
             "p_farmed": p_farmed,
             "error": error,
         }
@@ -89,14 +92,16 @@ def classify(
                 arrays.append(preprocess(p))
                 ok.append(p)
             except Exception as exc:  # unreadable or corrupt image
-                rows.append(row(p, np.nan, str(exc)))
+                rows.append(row(p, np.nan, np.nan, str(exc)))
         if arrays:
             logits = session.run(None, {"input": np.stack(arrays)})[0]
-            for p, prob in zip(ok, softmax(logits)[:, 1]):
-                rows.append(row(p, float(prob), ""))
+            for p, (p_wild, p_farmed) in zip(ok, sigmoid(logits)):
+                rows.append(row(p, float(p_wild), float(p_farmed), ""))
         if progress:
             progress(min(start + batch_size, len(paths)) / len(paths))
-    df = pd.DataFrame(rows, columns=["folder", "file", "p_farmed", "error"])
+    df = pd.DataFrame(
+        rows, columns=["folder", "file", "p_wild", "p_farmed", "error"]
+    )
     return df.sort_values(["folder", "file"]).reset_index(drop=True)
 
 

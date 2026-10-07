@@ -95,35 +95,35 @@ if result:
     m3.metric("Farmed", int(counts.get("Farmed", 0)))
     m4.metric("Errors", int(counts.get("Error", 0)))
 
-    left, right = st.columns([3, 2])
-    with left:
-        event = st.dataframe(
-            df[["folder", "file", "label", "p_farmed", "error"]],
-            hide_index=True,
-            use_container_width=True,
-            on_select="rerun",
-            selection_mode="single-row",
-            column_config={
-                "p_farmed": st.column_config.ProgressColumn(
-                    "P(farmed)", min_value=0.0, max_value=1.0, format="%.3f"
-                )
-            },
+    event = st.dataframe(
+        df[["folder", "file", "label", "p_wild", "p_farmed", "error"]],
+        hide_index=True,
+        use_container_width=True,
+        on_select="rerun",
+        selection_mode="single-row",
+        column_config={
+            "p_wild": st.column_config.ProgressColumn(
+                "P(wild)", min_value=0.0, max_value=1.0, format="%.3f"
+            ),
+            "p_farmed": st.column_config.ProgressColumn(
+                "P(farmed)", min_value=0.0, max_value=1.0, format="%.3f"
+            ),
+        },
+    )
+    st.download_button(
+        "Download CSV",
+        df.assign(threshold=threshold).to_csv(index=False),
+        file_name="scailes_predictions.csv",
+        mime="text/csv",
+    )
+
+    rows = event.selection.rows
+    if rows:
+        sel = df.iloc[rows[0]]
+        _, image_col, _ = st.columns([1, 2, 1])
+        image_col.image(
+            inference.load_fitted(Path(result["folder"]) / sel["folder"] / sel["file"]),
+            caption=f'{sel["folder"]}/{sel["file"]}'.lstrip("/"),
         )
-        st.download_button(
-            "Download CSV",
-            df.assign(threshold=threshold).to_csv(index=False),
-            file_name="scailes_predictions.csv",
-            mime="text/csv",
-        )
-    with right:
-        rows = event.selection.rows
-        if rows:
-            sel = df.iloc[rows[0]]
-            st.image(
-                inference.load_fitted(
-                    Path(result["folder"]) / sel["folder"] / sel["file"]
-                ),
-                caption=f'{sel["folder"]}/{sel["file"]}'.lstrip("/"),
-            )
-        else:
-            st.caption("Select a row to see the image.")
+    else:
+        st.caption("Select a row to see the image.")
